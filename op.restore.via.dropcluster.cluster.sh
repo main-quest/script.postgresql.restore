@@ -166,8 +166,6 @@ set +e
 # sudo -Hiu "$OS_USER" PGOPTIONS='--client-min-messages=warning' \
 export PGOPTIONS='--client-min-messages=warning'
 su "$OS_USER" -c "$PSQL_PATH -X -q -v ON_ERROR_STOP=1 --pset pager=off -f '$BACKUP_PREPROCESSED_FILE_NAME' -L '$RESTORE_LOG_FILE_PATH'"
-
-su "$OS_USER" -c "$PSQL_PATH -X -q -v ON_ERROR_STOP=1 --pset pager=off -f '$BACKUP_PREPROCESSED_FILE_NAME' -L '$RESTORE_LOG_FILE_PATH'"
 code="$?"
 set -e
 
