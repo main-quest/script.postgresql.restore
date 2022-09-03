@@ -61,8 +61,11 @@ set_postgres_user_pw(){
 
 
 echo "Backing up hba conf and postgresql conf files before potentially re-initializing cluster"
-# Lazy approach to return a non-existing directory, if the first command fails
-psql_conf_dir="$(su "$OS_USER" -c """$PSQL_PATH"" -tA -c 'SHOW data_directory;'" || echo 012364982748927394612473909)"
+# Commented: doesn't work if db server is stopped
+## Lazy approach to return a non-existing directory, if the first command fails
+# psql_conf_dir="$(su "$OS_USER" -c """$PSQL_PATH"" -tA -c 'SHOW data_directory;'" || echo 012364982748927394612473909)"
+psql_conf_dir="$(pg_config --bindir)"
+psql_conf_dir="${psql_conf_dir%bin}data"
 if [[ -d "$psql_conf_dir" ]]; then
     hba_conf_file=$"$psql_conf_dir/pg_hba.conf"
     postgresql_conf_file=$"$psql_conf_dir/postgresql.conf"
@@ -72,8 +75,8 @@ if [[ -d "$psql_conf_dir" ]]; then
     cp "$postgresql_conf_file" "$postgresql_conf_file_bak"
     
     echo "Checking if server is running.."
-    sv_status_text="$(su """$OS_USER""" -c "pg_ctl status")"
-    if [[ "$sv_status_text" != "pg_ctl: no server running" ]]; then
+    sv_status_text="$(su """$OS_USER""" -c "pg_ctl status || echo err")"
+    if [[ "$sv_status_text" == *"pg_ctl: server is running"* ]]; then
         echo "Stopping server"
         su "$OS_USER" -c "pg_ctl -D ""$psql_conf_dir"" stop"
     fi
